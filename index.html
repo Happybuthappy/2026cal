@@ -180,6 +180,11 @@
     return { T: T, use: use, after: a, ded: ded, basic: basic, all: all, L: L, baseDed: baseDed, extra: extra, total: baseDed + extra };
   }
   function calc(g, kids, u) { return detail(g, kids, u).total; }
+  function capDed(det) {
+    var order = [4, 3, 2, 0, 1], left = det.total, out = [0, 0, 0, 0, 0];
+    for (var q = 0; 5 > q; q++) { var t = Math.min(det.ded[order[q]], left); out[order[q]] = t; left -= t; }
+    return out;
+  }
   function plus(a, b) { return { c: a.c + (b.c || 0), d: a.d + (b.d || 0), k: a.k + (b.k || 0), m: a.m + (b.m || 0), r: a.r + (b.r || 0) }; }
   function minAdd(ok) {
     var lo = 0, hi = 100000;
@@ -255,16 +260,18 @@
     var r0c = up(p0.c), r0d = up(p0.d);
     txt('ccx-rtitle', '기본 공제 한도 ' + fmt(L.base) + '를 채우는 데 필요한 최소 사용액 (신용카드는 최저사용금액까지 공제가 없고, 이후 체크카드 30%로 한도를 채웁니다)');
     txt('ccx-rc', fmt(r0c)); txt('ccx-rd', fmt(r0d)); txt('ccx-rs', fmt(r0c + r0d));
+    var cd = capDed(dt);
     var ids = ['d1', 'd2', 'd3', 'd4', 'd5'];
     for (var j = 0; 5 > j; j++) {
       txt('ccx-' + ids[j] + 'u', fmt(dt.use[j]));
       txt('ccx-' + ids[j] + 'a', fmt(dt.after[j]));
-      txt('ccx-' + ids[j] + 'd', fmt(dt.ded[j]));
+      txt('ccx-' + ids[j] + 'd', fmt(cd[j]));
     }
     txt('ccx-dt', fmt(dt.all));
     txt('ccx-df', fmt(dt.total));
     var dn = '최저사용금액 ' + fmt(T) + '(총급여의 25%)을 신용카드부터 차례로 뺀 나머지에 공제율을 곱합니다. ';
-    dn += '기본 한도 ' + fmt(L.base) + ' 적용 후 ' + fmt(dt.baseDed) + ', 추가 공제 ' + fmt(dt.extra) + '(추가 한도 ' + fmt(L.extra) + ').';
+    dn += '기본 한도 ' + fmt(L.base) + ' 적용 후 ' + fmt(dt.baseDed) + ', 추가 공제 ' + fmt(dt.extra) + '(추가 한도 ' + fmt(L.extra) + '). ';
+    dn += '표의 공제액은 최종 공제액에 맞춰 조정한 값입니다. 전통시장·대중교통은 신용·체크 공제액이 기본 한도에 못 미치면 그 빈자리를 먼저 채우므로, 한 항목이 ' + fmt(L.extra) + '를 넘어 보일 수 있습니다. 추천 사용액은 만원 단위로 올려서 합계가 최대 한도보다 조금 커 보일 수 있습니다.';
     if (g > LIM.cultureMax) { if (sp.k > 0) { dn += ' 총급여 7천만 원 초과라 도서·공연 등은 신용카드 사용액으로 계산했습니다.'; } }
     txt('ccx-dn', dn);
 
@@ -275,9 +282,10 @@
     var after = calc(g, kids, plus(used, { c: pc, d: pd, r: ps }));
     var d0 = detail(g, kids, used);
     var d1 = detail(g, kids, plus(used, { c: pc, d: pd, r: ps }));
+    var c1 = capDed(d1);
     function row(n, idx) {
       var u0 = 0, u1 = 0, ap = 0, dd = 0;
-      for (var q = 0; idx.length !== q; q++) { u0 += d0.use[idx[q]]; u1 += d1.use[idx[q]]; ap += d1.after[idx[q]]; dd += d1.ded[idx[q]]; }
+      for (var q = 0; idx.length !== q; q++) { u0 += d0.use[idx[q]]; u1 += d1.use[idx[q]]; ap += d1.after[idx[q]]; dd += c1[idx[q]]; }
       txt('ccx-n' + n + 'a', fmt(u0)); txt('ccx-n' + n + 'b', fmt(u1 - u0)); txt('ccx-n' + n + 'c', fmt(u1));
       txt('ccx-n' + n + 'd', fmt(ap)); txt('ccx-n' + n + 'e', fmt(dd));
     }
