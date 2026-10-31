@@ -83,29 +83,6 @@
 <p class="ccx-note" id="ccx-dn"></p>
 </div>
 
-<div class="ccx-card">
-<div class="ccx-step">③ 지금까지 쓴 금액 → 더 쓰면 좋은 곳</div>
-<div class="ccx-grid">
-<label>신용카드<input id="ccx-uc" type="number" inputmode="decimal" min="0" value="0"></label>
-<label>체크카드·현금영수증<input id="ccx-ud" type="number" inputmode="decimal" min="0" value="0"></label>
-<label>전통시장<input id="ccx-um" type="number" inputmode="decimal" min="0" value="0"></label>
-<label>대중교통<input id="ccx-ur" type="number" inputmode="decimal" min="0" value="0"></label>
-<label>도서·공연·영화·체육시설<input id="ccx-uk" type="number" inputmode="decimal" min="0" value="0"></label>
-</div>
-<p class="ccx-tip" id="ccx-nreco"></p>
-<table>
-<tr><th>항목</th><th>지금까지</th><th>추천 추가 사용액</th><th>추천 총 사용액</th><th>공제적용 금액</th><th>공제액</th></tr>
-<tr><td>신용카드</td><td id="ccx-n1a"></td><td id="ccx-n1b"></td><td id="ccx-n1c"></td><td id="ccx-n1d"></td><td id="ccx-n1e"></td></tr>
-<tr><td>체크카드·현금영수증</td><td id="ccx-n2a"></td><td id="ccx-n2b"></td><td id="ccx-n2c"></td><td id="ccx-n2d"></td><td id="ccx-n2e"></td></tr>
-<tr><td>전통시장·대중교통</td><td id="ccx-n3a"></td><td id="ccx-n3b"></td><td id="ccx-n3c"></td><td id="ccx-n3d"></td><td id="ccx-n3e"></td></tr>
-<tr><td>도서·공연·영화·체육시설</td><td id="ccx-n4a"></td><td id="ccx-n4b"></td><td id="ccx-n4c"></td><td id="ccx-n4d"></td><td id="ccx-n4e"></td></tr>
-<tr><td colspan="5">공제액 합계 (한도 적용 전)</td><td id="ccx-nt"></td></tr>
-<tr><td colspan="5"><strong>최종 공제액 (한도 적용 후)</strong></td><td id="ccx-nf"></td></tr>
-<tr><td colspan="5">참고: 지금까지 쓴 금액만의 최종 공제액</td><td id="ccx-nn"></td></tr>
-</table>
-<p class="ccx-note" id="ccx-msg"></p>
-</div>
-
 <p class="ccx-note">참고용 계산입니다. 절세액은 소득세 기본세율과 지방소득세 10%를 곱한 추정값이며, 실제 환급액은 다른 공제에 따라 달라집니다.</p>
 </div>
 
@@ -223,8 +200,7 @@
     if (0 >= g) {
       var cells = document.querySelectorAll('#ccx td[id]');
       for (var q = 0; cells.length !== q; q++) { cells[q].textContent = ''; }
-      txt('ccx-big', '총급여를 입력해 주세요'); txt('ccx-bigsub', ''); txt('ccx-barlabel', ''); txt('ccx-split', ''); txt('ccx-rtitle', ''); txt('ccx-rc', ''); txt('ccx-rd', ''); txt('ccx-rs', ''); txt('ccx-dn', ''); txt('ccx-nreco', ''); txt('ccx-msg', '');
-      $('ccx-fill').style.width = '0%';
+      txt('ccx-big', '총급여를 입력해 주세요'); txt('ccx-bigsub', ''); txt('ccx-barlabel', ''); txt('ccx-split', ''); txt('ccx-rtitle', ''); txt('ccx-rc', ''); txt('ccx-rd', ''); txt('ccx-rs', ''); txt('ccx-dn', '');      $('ccx-fill').style.width = '0%';
       return;
     }
     var L = limits(g, kids);
@@ -275,33 +251,8 @@
     if (g > LIM.cultureMax) { if (sp.k > 0) { dn += ' 총급여 7천만 원 초과라 도서·공연 등은 신용카드 사용액으로 계산했습니다.'; } }
     txt('ccx-dn', dn);
 
-    var used = { c: num('ccx-uc'), d: num('ccx-ud'), m: num('ccx-um'), r: num('ccx-ur'), k: num('ccx-uk') };
-    var now = calc(g, kids, used);
-    var p = plan(g, kids, used, L);
-    var pc = up(p.c), pd = up(p.d), ps = up(p.s);
-    var after = calc(g, kids, plus(used, { c: pc, d: pd, r: ps }));
-    var d0 = detail(g, kids, used);
-    var d1 = detail(g, kids, plus(used, { c: pc, d: pd, r: ps }));
-    var c1 = capDed(d1);
-    function row(n, idx) {
-      var u0 = 0, u1 = 0, ap = 0, dd = 0;
-      for (var q = 0; idx.length !== q; q++) { u0 += d0.use[idx[q]]; u1 += d1.use[idx[q]]; ap += d1.after[idx[q]]; dd += c1[idx[q]]; }
-      txt('ccx-n' + n + 'a', fmt(u0)); txt('ccx-n' + n + 'b', fmt(u1 - u0)); txt('ccx-n' + n + 'c', fmt(u1));
-      txt('ccx-n' + n + 'd', fmt(ap)); txt('ccx-n' + n + 'e', fmt(dd));
-    }
-    row(1, [0]); row(2, [1]); row(3, [3, 4]); row(4, [2]);
-    txt('ccx-nt', fmt(d1.all)); txt('ccx-nf', fmt(d1.total)); txt('ccx-nn', fmt(now));
-    var more = pc + pd + ps;
-    txt('ccx-nreco', (more > 0)
-      ? '지금 공제 ' + fmt(now) + ' → 신용카드 ' + fmt(pc) + ', 체크카드 ' + fmt(pd) + ', 전통시장·대중교통 ' + fmt(ps) + '를 더 쓰면 최대 ' + fmt(after) + '(절세 약 ' + fmt(after * mult) + ')입니다.'
-      : '이미 최대 공제입니다. 앞으로는 혜택이 좋은 신용카드를 쓰셔도 됩니다.');
-    var msg = '';
-    if (used.c > T) { msg += '신용카드가 최저사용금액을 ' + fmt(used.c - T) + ' 넘었습니다. 넘은 만큼은 15%만 공제되니 남은 기간에는 체크카드가 유리합니다. '; }
-    if (T > used.c) { if (more > 0) { msg += '신용카드가 최저사용금액까지 ' + fmt(T - used.c) + ' 남았습니다. 이 구간은 공제가 없으니 혜택 좋은 신용카드로 채우세요. '; } }
-    if (used.k > 0) { if (g > LIM.cultureMax) { msg += '총급여 7천만 원 초과라 도서·공연 등은 신용카드로 계산했습니다. '; } }
-    txt('ccx-msg', msg);
   }
-  var all = ['ccx-g', 'ccx-k', 'ccx-r', 'ccx-pg', 'ccx-pm', 'ccx-pr', 'ccx-pk', 'ccx-uc', 'ccx-ud', 'ccx-um', 'ccx-ur', 'ccx-uk'];
+  var all = ['ccx-g', 'ccx-k', 'ccx-r', 'ccx-pg', 'ccx-pm', 'ccx-pr', 'ccx-pk'];
   for (var z = 0; all.length !== z; z++) { $(all[z]).addEventListener('input', run); $(all[z]).addEventListener('change', run); }
   run();
 })();
