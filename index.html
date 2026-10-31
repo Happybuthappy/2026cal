@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카드 소득공제 계산기 - 신용·체크카드 얼마 써야 할까</title>
+<meta name="description" content="총급여만 넣으면 연말정산 카드 소득공제 한도를 채우는 신용·체크카드 사용액을 계산해 드립니다.">
+<style>body{margin:0;padding:12px;font-family:-apple-system,"Malgun Gothic",sans-serif;background:#fff;color:#222;line-height:1.5}h1{font-size:20px;text-align:center;margin:12px 0 4px}.lead{text-align:center;font-size:13px;color:#555;margin:0 0 8px}.foot{max-width:720px;margin:12px auto;font-size:12px;color:#777}.foot a{color:#2f5d3c}</style>
+</head><body>
+<h1>카드 소득공제 계산기</h1>
+<p class="lead">총급여를 넣으면 신용·체크카드를 얼마 써야 공제 한도를 채우는지 알려 드립니다 (금액은 만원 단위, 제도가 개정되면 수치가 달라질 수 있습니다)</p>
+
+<div class="ccx-rule">
+<div class="ccx-rt">카드 소득공제 한눈에 보기</div>
+<table class="ccx-rtab">
+<tr><th>사용처</th><th>공제율</th><th>공제 한도</th></tr>
+<tr><td>신용카드</td><td><strong>15%</strong></td><td rowspan="2">기본 300만 원<br>(7천만 원 초과 250만 원)</td></tr>
+<tr><td>체크카드·현금영수증</td><td><strong>30%</strong></td></tr>
+<tr><td>도서·공연·미술관·영화·체육시설<br><small>총급여 7천만 원 이하</small></td><td><strong>30%</strong></td><td rowspan="3">기본 한도 초과분 추가 300만 원<br>(7천만 원 초과 200만 원)</td></tr>
+<tr><td>전통시장</td><td><strong>40%</strong></td></tr>
+<tr><td>대중교통</td><td><strong>40%</strong></td></tr>
+</table>
+<p class="ccx-rn2">총급여의 <strong>25%</strong>를 넘게 쓴 금액부터 공제 · 자녀 수에 따른 한도 가산은 반영하지 않았습니다</p>
+</div>
+<style>
+.ccx-rule{max-width:720px;margin:12px auto;border:1px solid #cfd8d1;border-radius:12px;overflow:hidden;font-size:14px}
+.ccx-rt{background:#2f5d3c;color:#fff;font-weight:bold;padding:10px 14px;font-size:16px}
+.ccx-rtab{border-collapse:collapse;width:100%}
+.ccx-rtab th,.ccx-rtab td{border:0;border-bottom:1px solid #e3e9e5;padding:8px 10px;text-align:center;font-size:13px}
+.ccx-rtab th{background:#e6efe8}
+.ccx-rtab td:first-child{text-align:left}
+.ccx-rtab td strong{color:#2f5d3c;font-size:15px}
+.ccx-rn2{margin:0;padding:8px 12px;background:#fffbe6;font-size:13px;text-align:center}
+</style>
+
+<div class="ccx" id="ccx">
+
+<div class="ccx-card">
+<div class="ccx-step">① 내 정보</div>
+<div class="ccx-grid">
+<label>연 총급여 (만원)<input id="ccx-g" type="number" inputmode="decimal" min="0" value="5000"></label>
+<input id="ccx-k" type="hidden" value="0">
+</div>
+<details class="ccx-det"><summary>세율 직접 고르기 (기본: 총급여로 자동 추정)</summary>
+<select id="ccx-r"><option value="0">자동 추정</option><option value="6">6%</option><option value="15">15%</option><option value="24">24%</option><option value="35">35%</option><option value="38">38%</option><option value="40">40%</option><option value="42">42%</option><option value="45">45%</option></select>
+</details>
+<p class="ccx-note" id="ccx-rn"></p>
+</div>
+
+<div class="ccx-card">
+<div class="ccx-step">② 올해 쓸 예정 금액 (1~12월 합계)</div>
+<div class="ccx-grid">
+<label>신용카드 + 체크카드 합산<input id="ccx-pg" type="number" inputmode="decimal" min="0" value="3000"></label>
+<label>전통시장<input id="ccx-pm" type="number" inputmode="decimal" min="0" value="0"></label>
+<label>대중교통<input id="ccx-pr" type="number" inputmode="decimal" min="0" value="100"></label>
+<label>도서·공연·미술관·영화·체육시설<input id="ccx-pk" type="number" inputmode="decimal" min="0" value="0"></label>
+</div>
+
+<div class="ccx-result">
+<div class="ccx-label">예상 환급(절세) 효과</div>
+<div class="ccx-bignum" id="ccx-big"></div>
+<div class="ccx-sub" id="ccx-bigsub"></div>
+<div class="ccx-bar"><div class="ccx-fill" id="ccx-fill"></div></div>
+<div class="ccx-sub" id="ccx-barlabel"></div>
+</div>
+
+<div class="ccx-label" id="ccx-rtitle"></div>
+<div class="ccx-recs">
+<div class="ccx-rec"><span>추천 신용카드 사용액</span><b id="ccx-rc"></b></div>
+<div class="ccx-rec"><span>추천 체크카드·현금영수증 사용액</span><b id="ccx-rd"></b></div>
+<div class="ccx-rec"><span>추천 사용액 합계</span><b id="ccx-rs"></b></div>
+</div>
+<p class="ccx-tip" id="ccx-split"></p>
+
+<div class="ccx-label">계산 과정</div>
+<table>
+<tr><th>항목</th><th>사용액</th><th>공제적용 금액</th><th>공제율</th><th>공제액</th></tr>
+<tr><td>신용카드</td><td id="ccx-d1u"></td><td id="ccx-d1a"></td><td>15%</td><td id="ccx-d1d"></td></tr>
+<tr><td>체크카드·현금영수증</td><td id="ccx-d2u"></td><td id="ccx-d2a"></td><td>30%</td><td id="ccx-d2d"></td></tr>
+<tr><td>도서·공연 등</td><td id="ccx-d3u"></td><td id="ccx-d3a"></td><td>30%</td><td id="ccx-d3d"></td></tr>
+<tr><td>전통시장</td><td id="ccx-d4u"></td><td id="ccx-d4a"></td><td>40%</td><td id="ccx-d4d"></td></tr>
+<tr><td>대중교통</td><td id="ccx-d5u"></td><td id="ccx-d5a"></td><td>40%</td><td id="ccx-d5d"></td></tr>
+<tr><td colspan="4">공제액 합계 (한도 적용 전)</td><td id="ccx-dt"></td></tr>
+<tr><td colspan="4"><strong>한도 적용 후 최종 공제액</strong></td><td id="ccx-df"></td></tr>
+</table>
+<p class="ccx-note" id="ccx-dn"></p>
+</div>
+
+<div class="ccx-card">
+<div class="ccx-step">③ 지금까지 쓴 금액 → 더 쓰면 좋은 곳</div>
+<div class="ccx-grid">
+<label>신용카드<input id="ccx-uc" type="number" inputmode="decimal" min="0" value="0"></label>
+<label>체크카드·현금영수증<input id="ccx-ud" type="number" inputmode="decimal" min="0" value="0"></label>
+<label>전통시장<input id="ccx-um" type="number" inputmode="decimal" min="0" value="0"></label>
+<label>대중교통<input id="ccx-ur" type="number" inputmode="decimal" min="0" value="0"></label>
+<label>도서·공연·영화·체육시설<input id="ccx-uk" type="number" inputmode="decimal" min="0" value="0"></label>
+</div>
+<p class="ccx-tip" id="ccx-nreco"></p>
+<table>
+<tr><th>항목</th><th>지금까지</th><th>추천 추가 사용액</th><th>추천 총 사용액</th><th>공제적용 금액</th><th>공제액</th></tr>
+<tr><td>신용카드</td><td id="ccx-n1a"></td><td id="ccx-n1b"></td><td id="ccx-n1c"></td><td id="ccx-n1d"></td><td id="ccx-n1e"></td></tr>
+<tr><td>체크카드·현금영수증</td><td id="ccx-n2a"></td><td id="ccx-n2b"></td><td id="ccx-n2c"></td><td id="ccx-n2d"></td><td id="ccx-n2e"></td></tr>
+<tr><td>전통시장·대중교통</td><td id="ccx-n3a"></td><td id="ccx-n3b"></td><td id="ccx-n3c"></td><td id="ccx-n3d"></td><td id="ccx-n3e"></td></tr>
+<tr><td>도서·공연·영화·체육시설</td><td id="ccx-n4a"></td><td id="ccx-n4b"></td><td id="ccx-n4c"></td><td id="ccx-n4d"></td><td id="ccx-n4e"></td></tr>
+<tr><td colspan="5">공제액 합계 (한도 적용 전)</td><td id="ccx-nt"></td></tr>
+<tr><td colspan="5"><strong>최종 공제액 (한도 적용 후)</strong></td><td id="ccx-nf"></td></tr>
+<tr><td colspan="5">참고: 지금까지 쓴 금액만의 최종 공제액</td><td id="ccx-nn"></td></tr>
+</table>
+<p class="ccx-note" id="ccx-msg"></p>
+</div>
+
+<p class="ccx-note">참고용 계산입니다. 절세액은 소득세 기본세율과 지방소득세 10%를 곱한 추정값이며, 실제 환급액은 다른 공제에 따라 달라집니다.</p>
+</div>
+
+<style>
+.ccx{max-width:720px;margin:12px auto;font-size:15px;color:#222}
+.ccx-card{border:1px solid #cfd8d1;border-radius:12px;padding:14px;margin:12px 0;background:#fafcfa}
+.ccx-step{font-size:17px;font-weight:bold;margin-bottom:8px;color:#2f5d3c}
+.ccx-grid{display:flex;flex-wrap:wrap;gap:10px}
+.ccx-grid label{display:flex;flex-direction:column;flex:1 1 140px;font-size:13px;color:#555}
+.ccx input,.ccx select{padding:10px;font-size:16px;border:1px solid #999;border-radius:8px;margin-top:4px;background:#fff}
+.ccx-det{margin:8px 0;font-size:13px;color:#555}
+.ccx-result{background:#eef6ef;border-radius:12px;padding:14px;margin:12px 0;text-align:center}
+.ccx-label{font-size:13px;color:#666;margin:8px 0 4px}
+.ccx-bignum{font-size:30px;font-weight:bold;color:#2f5d3c}
+.ccx-sub{font-size:13px;color:#555;margin-top:4px}
+.ccx-bar{height:12px;background:#d9e2dc;border-radius:6px;margin-top:10px;overflow:hidden}
+.ccx-fill{height:12px;width:0;background:#4a7c59}
+.ccx-recs{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.ccx-rec{flex:1 1 180px;background:#fff;border:2px solid #4a7c59;border-radius:10px;padding:10px;text-align:center}
+.ccx-rec span{display:block;font-size:12px;color:#555}
+.ccx-rec b{display:block;font-size:20px;color:#2f5d3c;margin-top:4px}
+.ccx-tip{background:#fffbe6;border:1px solid #e0cf7a;border-radius:8px;padding:10px;font-size:15px;font-weight:bold}
+.ccx table{border-collapse:collapse;width:100%;margin:8px 0;background:#fff;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:480px){.ccx th,.ccx td{padding:4px;font-size:12px}.ccx-card{padding:10px}}
+.ccx th,.ccx td{border:1px solid #ccc;padding:6px;text-align:right;font-size:13px}
+.ccx th:first-child,.ccx td:first-child{text-align:left}
+.ccx th{background:#e6efe8}
+.ccx-note{font-size:12px;color:#777}
+</style>
+
+<script>
+(function () {
+  var LIM = { base: 300, baseHigh: 250, kid1: 50, kid2: 100, kid1High: 25, kid2High: 50, extra: 300, extraHigh: 200, cultureMax: 7000 };
+  var RT = { c: 0.15, d: 0.30, k: 0.30, m: 0.40, r: 0.40 };
+  function $(id) { return document.getElementById(id); }
+  function num(id) { var v = parseFloat($(id).value); return (isNaN(v) || 0 > v) ? 0 : v; }
+  function fmt(n) { return (Math.round(n * 10) / 10).toLocaleString('ko-KR') + '만원'; }
+  function up(n) { return Math.ceil(n - 0.0001); }
+  function txt(id, s) { $(id).textContent = s; }
+  function guessRate(g) {
+    if (2700 >= g) { return 6; }
+    if (7100 >= g) { return 15; }
+    if (11500 >= g) { return 24; }
+    if (18000 >= g) { return 35; }
+    return 38;
+  }
+  function limits(g, kids) {
+    var hi = (g > 7000);
+    var b = hi ? LIM.baseHigh : LIM.base;
+    var k1 = hi ? LIM.kid1High : LIM.kid1;
+    var k2 = hi ? LIM.kid2High : LIM.kid2;
+    var plus = (kids >= 2) ? k2 : ((kids === 1) ? k1 : 0);
+    return { base: b + plus, extra: hi ? LIM.extraHigh : LIM.extra };
+  }
+  function detail(g, kids, u) {
+    var c = u.c, d = u.d, k = u.k, m = u.m, r = u.r;
+    if (g > LIM.cultureMax) { c += k; k = 0; }
+    var T = g * 0.25;
+    var rem = T;
+    function take(x) { var t = Math.min(x, rem); rem -= t; return x - t; }
+    var a = [take(c), take(d), take(k), take(m), take(r)];
+    var use = [c, d, k, m, r];
+    var rate = [RT.c, RT.d, RT.k, RT.m, RT.r];
+    var ded = [];
+    for (var i = 0; 5 > i; i++) { ded.push(a[i] * rate[i]); }
+    var basic = ded[0] + ded[1];
+    var special = ded[2] + ded[3] + ded[4];
+    var all = basic + special;
+    var L = limits(g, kids);
+    var baseDed = Math.min(all, L.base);
+    var extra = Math.min(Math.max(all - L.base, 0), special, L.extra);
+    return { T: T, use: use, after: a, ded: ded, basic: basic, all: all, L: L, baseDed: baseDed, extra: extra, total: baseDed + extra };
+  }
+  function calc(g, kids, u) { return detail(g, kids, u).total; }
+  function plus(a, b) { return { c: a.c + (b.c || 0), d: a.d + (b.d || 0), k: a.k + (b.k || 0), m: a.m + (b.m || 0), r: a.r + (b.r || 0) }; }
+  function minAdd(ok) {
+    var lo = 0, hi = 100000;
+    if (!ok(hi)) { return hi; }
+    if (ok(0)) { return 0; }
+    for (var n = 0; 60 > n; n++) {
+      var mid = (lo + hi) / 2;
+      if (ok(mid)) { hi = mid; } else { lo = mid; }
+    }
+    return hi;
+  }
+  function plan(g, kids, used, L) {
+    var eps = 0.0001;
+    var maxD = L.base + L.extra;
+    var T = g * 0.25;
+    var cmax = Math.max(0, T - used.c);
+    var best = null;
+    for (var i = 0; 400 >= i; i++) {
+      var ac = cmax * i / 400;
+      var u1 = plus(used, { c: ac });
+      var ad = minAdd(function (a) { return calc(g, kids, plus(u1, { d: a })) >= L.base - eps; });
+      var u2 = plus(u1, { d: ad });
+      var as = minAdd(function (a) { return calc(g, kids, plus(u2, { r: a })) >= maxD - eps; });
+      var tot = ac + ad + as;
+      if (best === null) { best = { c: ac, d: ad, s: as, t: tot }; }
+      else { if (best.t + 0.000001 >= tot) { best = { c: ac, d: ad, s: as, t: tot }; } }
+    }
+    return best;
+  }
+  function run() {
+    var g = num('ccx-g');
+    var kids = parseInt($('ccx-k').value, 10);
+    var rSel = parseFloat($('ccx-r').value);
+    var rate = (rSel > 0) ? rSel : guessRate(g);
+    txt('ccx-rn', (rSel > 0) ? '적용 세율 ' + rate + '% (직접 선택)' : '적용 세율 ' + rate + '% (총급여로 추정한 대략값, 필요하면 위에서 직접 고르세요)');
+    if (0 >= g) {
+      var cells = document.querySelectorAll('#ccx td[id]');
+      for (var q = 0; cells.length !== q; q++) { cells[q].textContent = ''; }
+      txt('ccx-big', '총급여를 입력해 주세요'); txt('ccx-bigsub', ''); txt('ccx-barlabel', ''); txt('ccx-split', ''); txt('ccx-rtitle', ''); txt('ccx-rc', ''); txt('ccx-rd', ''); txt('ccx-rs', ''); txt('ccx-dn', ''); txt('ccx-nreco', ''); txt('ccx-msg', '');
+      $('ccx-fill').style.width = '0%';
+      return;
+    }
+    var L = limits(g, kids);
+    var mult = rate / 100 * 1.1;
+    var T = g * 0.25;
+    var maxD = L.base + L.extra;
+
+    var F = num('ccx-pg');
+    var sp = { m: num('ccx-pm'), r: num('ccx-pr'), k: num('ccx-pk') };
+    var N = Math.max(1, Math.min(2000, Math.ceil(F)));
+    var bestX = 0, bestT = -1;
+    for (var i = 0; N >= i; i++) {
+      var x = F * i / N;
+      var t = calc(g, kids, { c: x, d: F - x, k: sp.k, m: sp.m, r: sp.r });
+      if (t > bestT - 0.000001) { bestT = t; bestX = x; }
+    }
+    bestX = Math.floor(bestX + 0.0001);
+    var plannedU = { c: bestX, d: F - bestX, k: sp.k, m: sp.m, r: sp.r };
+    var dt = detail(g, kids, plannedU);
+    txt('ccx-big', '약 ' + fmt(dt.total * mult));
+    txt('ccx-bigsub', '최종 공제액 ' + fmt(dt.total) + ' × 세율 ' + rate + '% × 지방소득세 1.1');
+    var pct = Math.round(dt.total / maxD * 100);
+    $('ccx-fill').style.width = Math.min(100, pct) + '%';
+    txt('ccx-barlabel', '공제 한도(기본 ' + fmt(L.base) + ' + 추가 ' + fmt(L.extra) + ') 중 ' + pct + '% 사용');
+    var split = '추천: 신용카드 ' + fmt(bestX) + ' + 체크카드·현금영수증 ' + fmt(F - bestX);
+    if (dt.basic >= L.base - 0.0001) {
+      if (F - bestX > 0) { split += '. 체크카드를 이만큼 쓰면 기본 한도가 차서, 나머지는 신용카드로 써도 공제가 같습니다.'; }
+      else { split += '. 신용카드만으로도 공제 한도가 다 차서, 체크카드로 바꿔도 공제액은 같습니다(혜택 좋은 신용카드 추천).'; }
+    }
+    else { if (T > F + sp.m + sp.r + sp.k) { split += '. 예정 금액이 최저사용금액(' + fmt(T) + ')보다 적어 공제가 없습니다.'; } else { split += '. 기본 한도가 아직 안 찼으니 체크카드 비중을 더 늘리세요.'; } }
+    txt('ccx-split', split);
+    var p0 = plan(g, kids, { c: 0, d: 0, m: 0, r: 0, k: 0 }, L);
+    var r0c = up(p0.c), r0d = up(p0.d);
+    txt('ccx-rtitle', '기본 공제 한도 ' + fmt(L.base) + '를 채우는 데 필요한 최소 사용액 (신용카드는 최저사용금액까지 공제가 없고, 이후 체크카드 30%로 한도를 채웁니다)');
+    txt('ccx-rc', fmt(r0c)); txt('ccx-rd', fmt(r0d)); txt('ccx-rs', fmt(r0c + r0d));
+    var ids = ['d1', 'd2', 'd3', 'd4', 'd5'];
+    for (var j = 0; 5 > j; j++) {
+      txt('ccx-' + ids[j] + 'u', fmt(dt.use[j]));
+      txt('ccx-' + ids[j] + 'a', fmt(dt.after[j]));
+      txt('ccx-' + ids[j] + 'd', fmt(dt.ded[j]));
+    }
+    txt('ccx-dt', fmt(dt.all));
+    txt('ccx-df', fmt(dt.total));
+    var dn = '최저사용금액 ' + fmt(T) + '(총급여의 25%)을 신용카드부터 차례로 뺀 나머지에 공제율을 곱합니다. ';
+    dn += '기본 한도 ' + fmt(L.base) + ' 적용 후 ' + fmt(dt.baseDed) + ', 추가 공제 ' + fmt(dt.extra) + '(추가 한도 ' + fmt(L.extra) + ').';
+    if (g > LIM.cultureMax) { if (sp.k > 0) { dn += ' 총급여 7천만 원 초과라 도서·공연 등은 신용카드 사용액으로 계산했습니다.'; } }
+    txt('ccx-dn', dn);
+
+    var used = { c: num('ccx-uc'), d: num('ccx-ud'), m: num('ccx-um'), r: num('ccx-ur'), k: num('ccx-uk') };
+    var now = calc(g, kids, used);
+    var p = plan(g, kids, used, L);
+    var pc = up(p.c), pd = up(p.d), ps = up(p.s);
+    var after = calc(g, kids, plus(used, { c: pc, d: pd, r: ps }));
+    var d0 = detail(g, kids, used);
+    var d1 = detail(g, kids, plus(used, { c: pc, d: pd, r: ps }));
+    function row(n, idx) {
+      var u0 = 0, u1 = 0, ap = 0, dd = 0;
+      for (var q = 0; idx.length !== q; q++) { u0 += d0.use[idx[q]]; u1 += d1.use[idx[q]]; ap += d1.after[idx[q]]; dd += d1.ded[idx[q]]; }
+      txt('ccx-n' + n + 'a', fmt(u0)); txt('ccx-n' + n + 'b', fmt(u1 - u0)); txt('ccx-n' + n + 'c', fmt(u1));
+      txt('ccx-n' + n + 'd', fmt(ap)); txt('ccx-n' + n + 'e', fmt(dd));
+    }
+    row(1, [0]); row(2, [1]); row(3, [3, 4]); row(4, [2]);
+    txt('ccx-nt', fmt(d1.all)); txt('ccx-nf', fmt(d1.total)); txt('ccx-nn', fmt(now));
+    var more = pc + pd + ps;
+    txt('ccx-nreco', (more > 0)
+      ? '지금 공제 ' + fmt(now) + ' → 신용카드 ' + fmt(pc) + ', 체크카드 ' + fmt(pd) + ', 전통시장·대중교통 ' + fmt(ps) + '를 더 쓰면 최대 ' + fmt(after) + '(절세 약 ' + fmt(after * mult) + ')입니다.'
+      : '이미 최대 공제입니다. 앞으로는 혜택이 좋은 신용카드를 쓰셔도 됩니다.');
+    var msg = '';
+    if (used.c > T) { msg += '신용카드가 최저사용금액을 ' + fmt(used.c - T) + ' 넘었습니다. 넘은 만큼은 15%만 공제되니 남은 기간에는 체크카드가 유리합니다. '; }
+    if (T > used.c) { if (more > 0) { msg += '신용카드가 최저사용금액까지 ' + fmt(T - used.c) + ' 남았습니다. 이 구간은 공제가 없으니 혜택 좋은 신용카드로 채우세요. '; } }
+    if (used.k > 0) { if (g > LIM.cultureMax) { msg += '총급여 7천만 원 초과라 도서·공연 등은 신용카드로 계산했습니다. '; } }
+    txt('ccx-msg', msg);
+  }
+  var all = ['ccx-g', 'ccx-k', 'ccx-r', 'ccx-pg', 'ccx-pm', 'ccx-pr', 'ccx-pk', 'ccx-uc', 'ccx-ud', 'ccx-um', 'ccx-ur', 'ccx-uk'];
+  for (var z = 0; all.length !== z; z++) { $(all[z]).addEventListener('input', run); $(all[z]).addEventListener('change', run); }
+  run();
+})();
+</script>
+
+<p class="foot">공제율·한도는 조세특례제한법상 카드 소득공제 기준으로 계산했고, 최신 제도는 <a href="https://www.hometax.go.kr">국세청 홈택스</a>에서 확인하세요. 최저사용금액을 신용카드부터 차감하는 순서는 일반 안내 기준으로 계산했습니다.</p>
+<p class="foot">참고용 계산이며 세무 상담이 아닙니다. 자녀 수에 따른 한도 가산, 전년 대비 소비 증가분 추가공제 등 일부 공제는 반영하지 않았고, 총급여 1.2억 원 초과 구간은 한도가 다를 수 있어 반영하지 않았습니다. 정확한 금액은 홈택스·회사 연말정산 결과로 확인하세요.</p>
+</body></html>
